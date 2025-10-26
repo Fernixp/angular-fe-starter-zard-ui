@@ -1,3 +1,49 @@
 <div>
     Aqui trabajamos con las categorias
+    <z-divider></z-divider>
+    <div class="w-full">
+        <div class="overflow-hidden rounded-md border">
+          <table z-table>
+            <thead z-table-header>
+              <tr z-table-row>
+                <th z-table-head>Status</th>
+                <th z-table-head>Email</th>
+                <th z-table-head class="text-right">Amount</th>
+                <th z-table-head class="w-16">Actions</th>
+              </tr>
+            </thead>
+            <tbody z-table-body>
+              @for (payment of payments; track payment.id) {
+                <tr z-table-row>
+                  <td z-table-cell>
+                    <z-badge [zType]="getStatusVariant(payment.status)">
+                      {{ payment.status }}
+                    </z-badge>
+                  </td>
+                  <td z-table-cell>
+                    <div class="lowercase">{{ payment.email }}</div>
+                  </td>
+                  <td z-table-cell>
+                    <div class="text-right font-medium">{{ formatCurrency(payment.amount) }}</div>
+                  </td>
+                  <td z-table-cell>
+                    <div class="flex items-center gap-2">
+                      <z-button zType="ghost" zSize="icon" (click)="copyPaymentId(payment.id)" title="Copy payment ID">
+                        <div z-icon zType="copy"></div>
+                      </z-button>
+                      <z-button zType="ghost" zSize="icon" (click)="viewDetails(payment)" title="View details">
+                        <div z-icon zType="eye"></div>
+                      </z-button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr z-table-row>
+                  <td z-table-cell [attr.colspan]="4" class="h-24 text-center">No results.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
 </div>
