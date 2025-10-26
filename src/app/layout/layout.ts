@@ -1,6 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { ZardIcon } from '../shared/components/icon/icons';
 import { ZardSkeletonComponent } from '../shared/components/skeleton/skeleton.component';
 import { ZardBreadcrumbModule } from '../shared/components/breadcrumb/breadcrumb.module';
@@ -15,6 +14,7 @@ import { LayoutModule } from '../shared/components/layout/layout.module';
 interface MenuItem {
   icon: ZardIcon;
   label: string;
+  route: string;
   submenu?: { label: string }[];
 }
 
@@ -23,6 +23,8 @@ interface MenuItem {
   standalone: true,
   imports: [
     RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
     LayoutModule,
     ZardButtonComponent,
     ZardBreadcrumbModule,
@@ -39,32 +41,33 @@ interface MenuItem {
 export class Layout {
   readonly year = new Date().getFullYear();
   sidebarCollapsed = signal(false);
-
+  
   mainMenuItems: MenuItem[] = [
-    { icon: 'house', label: 'Dashboard' },
-    { icon: 'inbox', label: 'Inbox' },
+    { icon: 'house', label: 'Dashboard', route: '/dashboard' },
+    { icon: 'folder', label: 'Categorías', route: '/categorias' },
   ];
-
+  
   workspaceMenuItems: MenuItem[] = [
     {
       icon: 'folder',
       label: 'Projects',
+      route: '#',
       submenu: [{ label: 'Design System' }, { label: 'Mobile App' }, { label: 'Website' }],
     },
-    { icon: 'calendar', label: 'Calendar' },
-    { icon: 'search', label: 'Search' },
+    { icon: 'calendar', label: 'Calendar', route: '#' },
+    { icon: 'search', label: 'Search', route: '#' },
   ];
-
+  
   avatar = {
     fallback: 'ZA',
     url: '/avatars/avatar.jpg',
     alt: 'ZadUI',
   };
-
+  
   toggleSidebar() {
     this.sidebarCollapsed.update((collapsed) => !collapsed);
   }
-
+  
   onCollapsedChange(collapsed: boolean) {
     this.sidebarCollapsed.set(collapsed);
   }
