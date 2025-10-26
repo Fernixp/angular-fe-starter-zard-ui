@@ -45,6 +45,7 @@ export class Layout {
   mainMenuItems: MenuItem[] = [
     { icon: 'house', label: 'Dashboard', route: '/dashboard' },
     { icon: 'folder', label: 'Categorías', route: '/categorias' },
+    { icon: 'store', label: 'Productos', route: '/productos' },
   ];
   
   workspaceMenuItems: MenuItem[] = [
