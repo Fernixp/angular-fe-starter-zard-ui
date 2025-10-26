@@ -41,6 +41,7 @@ import {
   Monitor,
   Moon,
   MoveRight,
+  Menu,
   Palette,
   PanelLeft,
   Puzzle,
@@ -137,6 +138,7 @@ export const ZARD_ICONS = {
   monitor: Monitor,
   smartphone: Smartphone,
   tablet: Tablet,
+  menu: Menu,
 } as const satisfies Record<string, LucideIconData>;
 
 export declare type ZardIcon = keyof typeof ZARD_ICONS | LucideIconData;

@@ -1,7 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, HostListener } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { ZardIcon } from '../shared/components/icon/icons';
-import { ZardSkeletonComponent } from '../shared/components/skeleton/skeleton.component';
 import { ZardBreadcrumbModule } from '../shared/components/breadcrumb/breadcrumb.module';
 import { ZardDividerComponent } from '../shared/components/divider/divider.component';
 import { ZardButtonComponent } from '../shared/components/button/button.component';
@@ -29,7 +28,6 @@ interface MenuItem {
     ZardButtonComponent,
     ZardBreadcrumbModule,
     ZardMenuModule,
-    ZardSkeletonComponent,
     ZardTooltipModule,
     ZardDividerComponent,
     ZardAvatarComponent,
@@ -41,6 +39,8 @@ interface MenuItem {
 export class Layout {
   readonly year = new Date().getFullYear();
   sidebarCollapsed = signal(false);
+  isMobile = signal(false);
+  mobileMenuOpen = signal(false);
   
   mainMenuItems: MenuItem[] = [
     { icon: 'house', label: 'Dashboard', route: '/dashboard' },
@@ -63,12 +63,41 @@ export class Layout {
     url: '/avatars/avatar.jpg',
     alt: 'ZadUI',
   };
+
+  constructor() {
+    this.checkScreenSize();
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    this.checkScreenSize();
+  }
+
+  private checkScreenSize() {
+    const width = window.innerWidth;
+    this.isMobile.set(width < 768);
+    
+    // En móvil, cerrar el sidebar automáticamente
+    if (this.isMobile()) {
+      this.mobileMenuOpen.set(false);
+    }
+  }
   
   toggleSidebar() {
-    this.sidebarCollapsed.update((collapsed) => !collapsed);
+    if (this.isMobile()) {
+      this.mobileMenuOpen.update((open) => !open);
+    } else {
+      this.sidebarCollapsed.update((collapsed) => !collapsed);
+    }
   }
   
   onCollapsedChange(collapsed: boolean) {
     this.sidebarCollapsed.set(collapsed);
+  }
+
+  closeMobileMenu() {
+    if (this.isMobile()) {
+      this.mobileMenuOpen.set(false);
+    }
   }
 }
