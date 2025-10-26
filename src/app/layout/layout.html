@@ -124,8 +124,8 @@
 
           @if (!sidebarCollapsed() || isMobile()) {
           <div>
-            <span class="font-medium">zardui</span>
-            <div class="text-xs">test&#64;zardui.com</div>
+            <span class="font-medium">Fer</span>
+            <div class="text-xs">ferpa&#64;gmail.com</div>
           </div>
 
           <z-icon zType="chevrons-up-down" class="ml-auto" />
@@ -142,6 +142,16 @@
               <z-icon zType="settings" class="mr-2" />
               Settings
             </button>
+            <button
+              z-menu-item
+              type="button"
+              (click)="$event.stopPropagation(); toggleTheme()"
+              style="cursor: pointer"
+            >
+              <z-icon [zType]="getCurrentTheme() === 'dark' ? 'sun' : 'moon'" class="mr-2" />
+              {{ getCurrentTheme() === 'dark' ? 'Light' : 'Dark' }}
+            </button>
+
             <z-divider zSpacing="sm" />
             <button z-menu-item>
               <z-icon zType="log-out" class="mr-2" />

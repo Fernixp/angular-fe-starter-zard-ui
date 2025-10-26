@@ -1,4 +1,4 @@
-import { Component, signal, HostListener } from '@angular/core';
+import { Component, signal, HostListener, inject } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { ZardIcon } from '../shared/components/icon/icons';
 import { ZardBreadcrumbModule } from '../shared/components/breadcrumb/breadcrumb.module';
@@ -9,6 +9,7 @@ import { ZardIconComponent } from '../shared/components/icon/icon.component';
 import { ZardTooltipModule } from '../shared/components/tooltip/tooltip';
 import { ZardMenuModule } from '../shared/components/menu/menu.module';
 import { LayoutModule } from '../shared/components/layout/layout.module';
+import { DarkModeService } from '../services/darkmode.service';
 
 interface MenuItem {
   icon: ZardIcon;
@@ -37,6 +38,7 @@ interface MenuItem {
   styleUrl: './layout.css',
 })
 export class Layout {
+  private readonly darkmodeService = inject(DarkModeService);
   readonly year = new Date().getFullYear();
   sidebarCollapsed = signal(false);
   isMobile = signal(false);
@@ -44,6 +46,7 @@ export class Layout {
   
   mainMenuItems: MenuItem[] = [
     { icon: 'house', label: 'Dashboard', route: '/dashboard' },
+    { icon: 'store', label: 'Productos', route: '/productos' },
     { icon: 'folder', label: 'Categorías', route: '/categorias' },
   ];
   
@@ -99,5 +102,14 @@ export class Layout {
     if (this.isMobile()) {
       this.mobileMenuOpen.set(false);
     }
+  }
+
+
+  toggleTheme(): void {
+    this.darkmodeService.toggleTheme();
+  }
+ 
+  getCurrentTheme(): 'light' | 'dark' {
+    return this.darkmodeService.getCurrentTheme();
   }
 }

@@ -1,0 +1,105 @@
+<div class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-2xl font-bold">Productos</h2>
+      <button z-button zType="default" (click)="openCreateDialog()">
+        <z-icon zType="folder-plus" class="mr-2" />
+        Nuevo Producto
+      </button>
+    </div>
+  
+    <z-divider></z-divider>
+  
+    @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <z-icon zType="loader-circle" class="animate-spin" />
+      <span class="ml-2">Cargando productos...</span>
+    </div>
+    } @else if (error()) {
+    <div class="flex items-center justify-center py-12 text-destructive">
+      <z-icon zType="circle-x" class="mr-2" />
+      {{ error() }}
+    </div>
+    } @else {
+    <div class="w-full overflow-hidden rounded-md border">
+      <table z-table>
+        <thead z-table-header>
+          <tr z-table-row>
+            <th z-table-head class="w-20">ID</th>
+            <th z-table-head>Nombre</th>
+            <th z-table-head>Precio</th>
+            <th z-table-head>Categoría</th>
+            <th z-table-head>Estado</th>
+            <th z-table-head>Fecha Creación</th>
+            <th z-table-head class="w-32 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody z-table-body>
+          @for (producto of productos(); track producto.id) {
+          <tr z-table-row>
+            <td z-table-cell>
+              <div class="font-medium">#{{ producto.id }}</div>
+            </td>
+            <td z-table-cell>
+              <div class="font-medium">{{ producto.nombre }}</div>
+            </td>
+            <td z-table-cell>
+              <div class="font-medium">{{ formatPrice(producto.precio) }}</div>
+            </td>
+            <td z-table-cell>
+              <div class="font-medium">{{ producto.categoria ?? '-' }}</div>
+            </td>
+            <td z-table-cell>
+              <z-badge [zType]="getEstadoVariant(producto.estado)">
+                <z-icon
+                  [zType]="producto.estado === 'activo' ? 'circle-check' : 'circle-x'"
+                  class="mr-1"
+                  zSize="sm"
+                />
+                {{ producto.estado }}
+              </z-badge>
+            </td>
+            <td z-table-cell>
+              <div class="text-sm text-muted-foreground">
+                {{ formatDate(producto.created_at) }}
+              </div>
+            </td>
+            <td z-table-cell>
+              <div class="flex items-center justify-end gap-2">
+                <button
+                  z-button
+                  zType="ghost"
+                  zSize="icon"
+                  (click)="openEditDialog(producto)"
+                  title="Editar producto"
+                >
+                  <z-icon zType="square-pen" />
+                </button>
+                <button
+                  z-button
+                  zType="ghost"
+                  zSize="icon"
+                  (click)="deleteProducto(producto)"
+                  title="Eliminar producto"
+                  class="text-destructive hover:text-destructive hover:bg-destructive/10"
+                >
+                  <z-icon zType="trash2" />
+                </button>
+              </div>
+            </td>
+          </tr>
+          } @empty {
+          <tr z-table-row>
+            <td z-table-cell [attr.colspan]="5" class="h-24 text-center">
+              <div class="flex flex-col items-center gap-2">
+                <z-icon zType="folder-open" class="text-muted-foreground" />
+                <span class="text-muted-foreground">No hay productos registrados</span>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </div>
+  
