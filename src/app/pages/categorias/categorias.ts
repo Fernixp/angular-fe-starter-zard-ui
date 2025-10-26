@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
   ZardTableBodyComponent,
   ZardTableCellComponent,
@@ -11,15 +12,12 @@ import { ZardButtonComponent } from '../../shared/components/button/button.compo
 import { ZardBadgeComponent } from '../../shared/components/badge/badge.component';
 import { ZardIconComponent } from '../../shared/components/icon/icon.component';
 import { ZardDividerComponent } from '../../shared/components/divider/divider.component';
-export interface Payment {
-  id: string;
-  amount: number;
-  status: 'pending' | 'processing' | 'success' | 'failed';
-  email: string;
-}
+import { CategoriaService, Categoria } from '../../services/categoria.services';
+
 @Component({
   selector: 'app-categorias',
   imports: [
+    CommonModule,
     ZardTableComponent,
     ZardTableHeaderComponent,
     ZardTableBodyComponent,
@@ -34,74 +32,54 @@ export interface Payment {
   templateUrl: './categorias.html',
   styleUrl: './categorias.css',
 })
-export class Categorias {
-  payments: Payment[] = [
-    {
-      id: 'm5gr84i9',
-      amount: 316,
-      status: 'success',
-      email: 'ken99@example.com',
-    },
-    {
-      id: '3u1reuv4',
-      amount: 242,
-      status: 'success',
-      email: 'Abe45@example.com',
-    },
-    {
-      id: 'derv1ws0',
-      amount: 837,
-      status: 'processing',
-      email: 'Monserrat44@example.com',
-    },
-    {
-      id: '5kma53ae',
-      amount: 874,
-      status: 'success',
-      email: 'Silas22@example.com',
-    },
-    {
-      id: 'bhqecj4p',
-      amount: 721,
-      status: 'failed',
-      email: 'carmella@example.com',
-    },
-    {
-      id: 'abc123ef',
-      amount: 456,
-      status: 'pending',
-      email: 'jane.doe@example.com',
-    },
-  ];
+export class Categorias implements OnInit {
+  categorias = signal<Categoria[]>([]);
+  loading = signal(true);
+  error = signal<string | null>(null);
 
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
+  constructor(private categoriaService: CategoriaService) {}
+
+  ngOnInit(): void {
+    this.loadCategorias();
   }
 
-  getStatusVariant(status: Payment['status']): 'default' | 'secondary' | 'destructive' | 'outline' {
-    switch (status) {
-      case 'success':
-        return 'default';
-      case 'processing':
-        return 'secondary';
-      case 'failed':
-        return 'destructive';
-      case 'pending':
-        return 'outline';
-      default:
-        return 'secondary';
-    }
+  loadCategorias(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    this.categoriaService.getCategorias().subscribe({
+      next: (data) => {
+        this.categorias.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar categorías:', err);
+        this.error.set('Error al cargar las categorías');
+        this.loading.set(false);
+      }
+    });
   }
 
-  copyPaymentId(id: string): void {
-    navigator.clipboard.writeText(id);
-    console.log('Payment ID copied:', id);
+  getEstadoVariant(estado: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+    return estado === 'activo' ? 'default' : 'outline';
   }
 
-  viewDetails(payment: Payment): void {
-    console.log('View payment details:', payment);
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(date);
+  }
+
+  editCategoria(categoria: Categoria): void {
+    console.log('Editar categoría:', categoria);
+    // Aquí implementarás la lógica de edición
+  }
+
+  deleteCategoria(categoria: Categoria): void {
+    console.log('Eliminar categoría:', categoria);
+    // Aquí implementarás la lógica de eliminación
   }
 }
