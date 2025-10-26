@@ -1,5 +1,7 @@
 # 🚀 Sistema de Gestión - Angular 20 + Zard UI
 
+![image](image.png)
+
 Sistema CRUD completo construido con Angular 20 y Zard UI, una alternativa de shadcn para Angular.
 
 ![Angular](https://img.shields.io/badge/Angular-20-red?style=flat-square&logo=angular)
