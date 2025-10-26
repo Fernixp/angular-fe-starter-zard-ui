@@ -14,6 +14,7 @@ import { ZardIconComponent } from '../../shared/components/icon/icon.component';
 import { ZardDividerComponent } from '../../shared/components/divider/divider.component';
 import { ZardDialogModule } from '../../shared/components/dialog/dialog.component';
 import { ZardDialogService } from '../../shared/components/dialog/dialog.service';
+import { ZardAlertDialogService } from '../../shared/components/alert-dialog/alert-dialog.service';
 import { CategoriaService, Categoria } from '../../services/categoria.services';
 import { CategoriaFormDialogComponent, CategoriaFormData } from './categoria-form-dialog';
 
@@ -39,6 +40,7 @@ import { CategoriaFormDialogComponent, CategoriaFormData } from './categoria-for
 export class Categorias implements OnInit {
   private categoriaService = inject(CategoriaService);
   private dialogService = inject(ZardDialogService);
+  private alertDialogService = inject(ZardAlertDialogService);
 
   categorias = signal<Categoria[]>([]);
   loading = signal(true);
@@ -51,7 +53,7 @@ export class Categorias implements OnInit {
   loadCategorias(): void {
     this.loading.set(true);
     this.error.set(null);
-
+    
     this.categoriaService.getCategorias().subscribe({
       next: (data) => {
         this.categorias.set(data);
@@ -61,7 +63,7 @@ export class Categorias implements OnInit {
         console.error('Error al cargar categorías:', err);
         this.error.set('Error al cargar las categorías');
         this.loading.set(false);
-      },
+      }
     });
   }
 
@@ -77,11 +79,11 @@ export class Categorias implements OnInit {
           console.error('Formulario inválido');
           return false;
         }
-  
+
         instance.clearServerErrors();
-  
+
         const formData = instance.getValue();
-  
+
         this.categoriaService.createCategoria({
           nombre: formData.nombre,
           estado: 'activo',
@@ -89,7 +91,7 @@ export class Categorias implements OnInit {
           next: () => {
             console.log('Categoría creada exitosamente');
             this.loadCategorias();
-            dialogRef.close(); // ✅ Cerrar manualmente cuando sea exitoso
+            dialogRef.close();
           },
           error: (err) => {
             console.error('Error al crear categoría:', err);
@@ -108,8 +110,8 @@ export class Categorias implements OnInit {
             this.loading.set(false);
           }
         });
-  
-        return false; // ✅ Evita el cierre automático
+
+        return false;
       },
       zWidth: '450px',
     });
@@ -132,11 +134,11 @@ export class Categorias implements OnInit {
           console.error('Formulario inválido');
           return false;
         }
-  
+
         instance.clearServerErrors();
-  
+
         const formData = instance.getValue();
-  
+
         this.categoriaService.updateCategoria(categoria.id, {
           nombre: formData.nombre,
           estado: formData.estado!,
@@ -144,7 +146,7 @@ export class Categorias implements OnInit {
           next: () => {
             console.log('Categoría actualizada exitosamente');
             this.loadCategorias();
-            dialogRef.close(); // ✅ Cerrar manualmente cuando sea exitoso
+            dialogRef.close();
           },
           error: (err) => {
             console.error('Error al actualizar categoría:', err);
@@ -163,16 +165,43 @@ export class Categorias implements OnInit {
             this.loading.set(false);
           }
         });
-  
-        return false; // ✅ Evita el cierre automático
+
+        return false;
       },
       zWidth: '450px',
     });
   }
 
   deleteCategoria(categoria: Categoria): void {
-    // Por ahora solo console.log, luego implementaremos confirmación
-    console.log('Eliminar categoría:', categoria);
+    this.alertDialogService.confirm({
+      zTitle: '¿Estás seguro?',
+      zDescription: `Esta acción eliminará permanentemente la categoría "${categoria.nombre}". Esta acción no se puede deshacer.`,
+      zOkText: 'Eliminar',
+      zCancelText: 'Cancelar',
+      zOnOk: () => {
+        this.loading.set(true);
+
+        this.categoriaService.deleteCategoria(categoria.id).subscribe({
+          next: () => {
+            console.log('Categoría eliminada exitosamente');
+            this.loadCategorias();
+          },
+          error: (err) => {
+            console.error('Error al eliminar categoría:', err);
+            this.error.set('Error al eliminar la categoría');
+            this.loading.set(false);
+            
+            // Opcional: Mostrar otro alert con el error
+            this.alertDialogService.confirm({
+              zTitle: 'Error',
+              zDescription: 'No se pudo eliminar la categoría. Por favor, intente nuevamente.',
+              zOkText: 'Aceptar',
+              zCancelText: '',
+            });
+          }
+        });
+      }
+    });
   }
 
   getEstadoVariant(estado: string): 'default' | 'secondary' | 'destructive' | 'outline' {
