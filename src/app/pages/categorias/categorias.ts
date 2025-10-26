@@ -51,7 +51,7 @@ export class Categorias implements OnInit {
   loadCategorias(): void {
     this.loading.set(true);
     this.error.set(null);
-    
+
     this.categoriaService.getCategorias().subscribe({
       next: (data) => {
         this.categorias.set(data);
@@ -61,48 +61,113 @@ export class Categorias implements OnInit {
         console.error('Error al cargar categorías:', err);
         this.error.set('Error al cargar las categorías');
         this.loading.set(false);
-      }
+      },
     });
   }
 
   openCreateDialog(): void {
-  this.dialogService.create({
-    zTitle: 'Nueva Categoría',
-    zDescription: 'Ingrese el nombre de la nueva categoría.',
-    zContent: CategoriaFormDialogComponent,
-    zOkText: 'Crear',
-    zCancelText: 'Cancelar',
-    zOnOk: (instance: CategoriaFormDialogComponent) => {
-      if (!instance.isValid()) {
-        console.error('Formulario inválido');
-        return false; // ✅ Evita que se cierre el dialog
-      }
-
-      const formData = instance.getValue();
-
-      this.categoriaService.createCategoria({
-        nombre: formData.nombre,
-        estado: 'activo',
-      }).subscribe({
-        next: () => {
-          console.log('Categoría creada exitosamente');
-          this.loadCategorias();
-        },
-        error: (err) => {
-          console.error('Error al crear categoría:', err);
-          this.error.set('Error al crear la categoría');
-          this.loading.set(false);
+    const dialogRef = this.dialogService.create({
+      zTitle: 'Nueva Categoría',
+      zDescription: 'Ingrese el nombre de la nueva categoría.',
+      zContent: CategoriaFormDialogComponent,
+      zOkText: 'Crear',
+      zCancelText: 'Cancelar',
+      zOnOk: (instance: CategoriaFormDialogComponent) => {
+        if (!instance.isValid()) {
+          console.error('Formulario inválido');
+          return false;
         }
-      });
-
-      return; // ✅ Retornar void para cerrar el dialog
-    },
-    zWidth: '450px',
-  });
-}
+  
+        instance.clearServerErrors();
+  
+        const formData = instance.getValue();
+  
+        this.categoriaService.createCategoria({
+          nombre: formData.nombre,
+          estado: 'activo',
+        }).subscribe({
+          next: () => {
+            console.log('Categoría creada exitosamente');
+            this.loadCategorias();
+            dialogRef.close(); // ✅ Cerrar manualmente cuando sea exitoso
+          },
+          error: (err) => {
+            console.error('Error al crear categoría:', err);
+            
+            if (err.status === 422 && err.error) {
+              instance.setServerErrors({
+                message: err.error.message || 'Error de validación',
+                errors: err.error.errors || {}
+              });
+            } else {
+              instance.setServerErrors({
+                message: 'Error al crear la categoría. Intente nuevamente.'
+              });
+            }
+            
+            this.loading.set(false);
+          }
+        });
+  
+        return false; // ✅ Evita el cierre automático
+      },
+      zWidth: '450px',
+    });
+  }
 
   openEditDialog(categoria: Categoria): void {
-   console.log('Editar categoría:', categoria);
+    const dialogRef = this.dialogService.create({
+      zTitle: 'Editar Categoría',
+      zDescription: `Editando categoría: ${categoria.nombre}`,
+      zContent: CategoriaFormDialogComponent,
+      zData: {
+        id: categoria.id,
+        nombre: categoria.nombre,
+        estado: categoria.estado,
+      } as CategoriaFormData,
+      zOkText: 'Actualizar',
+      zCancelText: 'Cancelar',
+      zOnOk: (instance: CategoriaFormDialogComponent) => {
+        if (!instance.isValid()) {
+          console.error('Formulario inválido');
+          return false;
+        }
+  
+        instance.clearServerErrors();
+  
+        const formData = instance.getValue();
+  
+        this.categoriaService.updateCategoria(categoria.id, {
+          nombre: formData.nombre,
+          estado: formData.estado!,
+        }).subscribe({
+          next: () => {
+            console.log('Categoría actualizada exitosamente');
+            this.loadCategorias();
+            dialogRef.close(); // ✅ Cerrar manualmente cuando sea exitoso
+          },
+          error: (err) => {
+            console.error('Error al actualizar categoría:', err);
+            
+            if (err.status === 422 && err.error) {
+              instance.setServerErrors({
+                message: err.error.message || 'Error de validación',
+                errors: err.error.errors || {}
+              });
+            } else {
+              instance.setServerErrors({
+                message: 'Error al actualizar la categoría. Intente nuevamente.'
+              });
+            }
+            
+            this.loading.set(false);
+          }
+        });
+  
+        return false; // ✅ Evita el cierre automático
+      },
+      zWidth: '450px',
+    });
   }
 
   deleteCategoria(categoria: Categoria): void {

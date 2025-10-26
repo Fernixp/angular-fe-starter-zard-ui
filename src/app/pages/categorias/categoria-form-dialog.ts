@@ -1,6 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { ZardInputDirective } from '../../shared/components/input/input.directive';
+import { ZardIconComponent } from '../../shared/components/icon/icon.component';
 import { Z_MODAL_DATA } from '../../shared/components/dialog/dialog.service';
 
 export interface CategoriaFormData {
@@ -12,9 +14,17 @@ export interface CategoriaFormData {
 @Component({
   selector: 'app-categoria-form-dialog',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, ZardInputDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ZardInputDirective, ZardIconComponent],
   template: `
     <form [formGroup]="form" class="grid gap-4">
+      <!-- Error general del servidor -->
+      @if (serverError()) {
+        <div class="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+          <z-icon zType="circle-x" zSize="sm" />
+          <span>{{ serverError() }}</span>
+        </div>
+      }
+
       <div class="grid gap-3">
         <label 
           for="nombre" 
@@ -28,12 +38,29 @@ export interface CategoriaFormData {
           formControlName="nombre" 
           placeholder="Ej: Electrónica, Ropa, Alimentos..."
           class="w-full"
+          [class.border-destructive]="form.get('nombre')?.invalid && form.get('nombre')?.touched"
         />
+        
+        <!-- Errores de validación del cliente -->
         @if (form.get('nombre')?.touched && form.get('nombre')?.hasError('required')) {
-          <span class="text-xs text-destructive">El nombre es requerido</span>
+          <span class="text-xs text-destructive flex items-center gap-1">
+            <z-icon zType="triangle-alert" zSize="sm" />
+            El nombre es requerido
+          </span>
         }
         @if (form.get('nombre')?.touched && form.get('nombre')?.hasError('minlength')) {
-          <span class="text-xs text-destructive">El nombre debe tener al menos 3 caracteres</span>
+          <span class="text-xs text-destructive flex items-center gap-1">
+            <z-icon zType="triangle-alert" zSize="sm" />
+            El nombre debe tener al menos 3 caracteres
+          </span>
+        }
+        
+        <!-- Errores del servidor para el campo nombre -->
+        @if (fieldErrors()['nombre']) {
+          <span class="text-xs text-destructive flex items-center gap-1">
+            <z-icon zType="circle-x" zSize="sm" />
+            {{ fieldErrors()['nombre'][0] }}
+          </span>
         }
       </div>
 
@@ -51,10 +78,19 @@ export interface CategoriaFormData {
             id="estado"
             formControlName="estado"
             class="cursor-pointer"
+            [class.border-destructive]="form.get('estado')?.invalid && form.get('estado')?.touched"
           >
             <option value="activo">Activo</option>
             <option value="inactivo">Inactivo</option>
           </select>
+          
+          <!-- Errores del servidor para el campo estado -->
+          @if (fieldErrors()['estado']) {
+            <span class="text-xs text-destructive flex items-center gap-1">
+              <z-icon zType="circle-x" zSize="sm" />
+              {{ fieldErrors()['estado'][0] }}
+            </span>
+          }
         </div>
       }
     </form>
@@ -64,6 +100,8 @@ export class CategoriaFormDialogComponent {
   private zData: CategoriaFormData | null = inject(Z_MODAL_DATA);
 
   isEditMode = false;
+  serverError = signal<string | null>(null);
+  fieldErrors = signal<Record<string, string[]>>({});
 
   form = new FormGroup({
     nombre: new FormControl('', [
@@ -94,5 +132,22 @@ export class CategoriaFormDialogComponent {
       // Solo incluir estado si es modo edición
       ...(this.isEditMode && { estado: formValue.estado! }),
     };
+  }
+
+  // Método para setear errores desde el componente padre
+  setServerErrors(errors: { message?: string; errors?: Record<string, string[]> }): void {
+    if (errors.message) {
+      this.serverError.set(errors.message);
+    }
+    
+    if (errors.errors) {
+      this.fieldErrors.set(errors.errors);
+    }
+  }
+
+  // Limpiar errores del servidor
+  clearServerErrors(): void {
+    this.serverError.set(null);
+    this.fieldErrors.set({});
   }
 }
