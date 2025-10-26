@@ -41,7 +41,7 @@ export class Layout {
   sidebarCollapsed = signal(false);
 
   mainMenuItems: MenuItem[] = [
-    { icon: 'house', label: 'Home' },
+    { icon: 'house', label: 'Dashboard' },
     { icon: 'inbox', label: 'Inbox' },
   ];
 
