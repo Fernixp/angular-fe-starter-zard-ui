@@ -43,7 +43,7 @@
               <div class="font-medium">{{ producto.nombre }}</div>
             </td>
             <td z-table-cell>
-              <div class="font-medium">{{ producto.precio }}</div>
+              <div class="font-medium">{{ formatPrice(producto.precio) }}</div>
             </td>
             <td z-table-cell>
               <div class="font-medium">{{ producto.categoria ?? '-' }}</div>

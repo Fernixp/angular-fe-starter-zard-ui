@@ -235,6 +235,13 @@ export class Productos implements OnInit {
       day: 'numeric',
     }).format(date);
   }
+  formatPrice(price: number): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'BOB',       // Código ISO de boliviano
+      currencyDisplay: 'narrowSymbol', // Muestra el símbolo corto
+    }).format(price);
+  }  
 
   showToast(message: string, description: string) {
     toast.error(message, {
