@@ -10,6 +10,15 @@ export interface Categoria {
   updated_at: string;
 }
 
+export interface CategoriaCreateDto {
+  nombre: string;
+  estado: 'activo' | 'inactivo';
+}
+
+export interface CategoriaUpdateDto extends CategoriaCreateDto {
+  id: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -20,5 +29,17 @@ export class CategoriaService {
 
   getCategorias(): Observable<Categoria[]> {
     return this.http.get<Categoria[]>(this.apiUrl);
+  }
+
+  createCategoria(categoria: CategoriaCreateDto): Observable<Categoria> {
+    return this.http.post<Categoria>(this.apiUrl, categoria);
+  }
+
+  updateCategoria(id: number, categoria: CategoriaCreateDto): Observable<Categoria> {
+    return this.http.put<Categoria>(`${this.apiUrl}/${id}`, categoria);
+  }
+
+  deleteCategoria(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

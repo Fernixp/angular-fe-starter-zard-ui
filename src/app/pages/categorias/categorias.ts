@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ZardTableBodyComponent,
@@ -12,7 +12,10 @@ import { ZardButtonComponent } from '../../shared/components/button/button.compo
 import { ZardBadgeComponent } from '../../shared/components/badge/badge.component';
 import { ZardIconComponent } from '../../shared/components/icon/icon.component';
 import { ZardDividerComponent } from '../../shared/components/divider/divider.component';
+import { ZardDialogModule } from '../../shared/components/dialog/dialog.component';
+import { ZardDialogService } from '../../shared/components/dialog/dialog.service';
 import { CategoriaService, Categoria } from '../../services/categoria.services';
+import { CategoriaFormDialogComponent, CategoriaFormData } from './categoria-form-dialog';
 
 @Component({
   selector: 'app-categorias',
@@ -28,16 +31,18 @@ import { CategoriaService, Categoria } from '../../services/categoria.services';
     ZardButtonComponent,
     ZardIconComponent,
     ZardDividerComponent,
+    ZardDialogModule,
   ],
   templateUrl: './categorias.html',
   styleUrl: './categorias.css',
 })
 export class Categorias implements OnInit {
+  private categoriaService = inject(CategoriaService);
+  private dialogService = inject(ZardDialogService);
+
   categorias = signal<Categoria[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
-
-  constructor(private categoriaService: CategoriaService) {}
 
   ngOnInit(): void {
     this.loadCategorias();
@@ -60,6 +65,51 @@ export class Categorias implements OnInit {
     });
   }
 
+  openCreateDialog(): void {
+  this.dialogService.create({
+    zTitle: 'Nueva Categoría',
+    zDescription: 'Ingrese el nombre de la nueva categoría.',
+    zContent: CategoriaFormDialogComponent,
+    zOkText: 'Crear',
+    zCancelText: 'Cancelar',
+    zOnOk: (instance: CategoriaFormDialogComponent) => {
+      if (!instance.isValid()) {
+        console.error('Formulario inválido');
+        return false; // ✅ Evita que se cierre el dialog
+      }
+
+      const formData = instance.getValue();
+
+      this.categoriaService.createCategoria({
+        nombre: formData.nombre,
+        estado: 'activo',
+      }).subscribe({
+        next: () => {
+          console.log('Categoría creada exitosamente');
+          this.loadCategorias();
+        },
+        error: (err) => {
+          console.error('Error al crear categoría:', err);
+          this.error.set('Error al crear la categoría');
+          this.loading.set(false);
+        }
+      });
+
+      return; // ✅ Retornar void para cerrar el dialog
+    },
+    zWidth: '450px',
+  });
+}
+
+  openEditDialog(categoria: Categoria): void {
+   console.log('Editar categoría:', categoria);
+  }
+
+  deleteCategoria(categoria: Categoria): void {
+    // Por ahora solo console.log, luego implementaremos confirmación
+    console.log('Eliminar categoría:', categoria);
+  }
+
   getEstadoVariant(estado: string): 'default' | 'secondary' | 'destructive' | 'outline' {
     return estado === 'activo' ? 'default' : 'outline';
   }
@@ -71,15 +121,5 @@ export class Categorias implements OnInit {
       month: 'short',
       day: 'numeric',
     }).format(date);
-  }
-
-  editCategoria(categoria: Categoria): void {
-    console.log('Editar categoría:', categoria);
-    // Aquí implementarás la lógica de edición
-  }
-
-  deleteCategoria(categoria: Categoria): void {
-    console.log('Eliminar categoría:', categoria);
-    // Aquí implementarás la lógica de eliminación
   }
 }

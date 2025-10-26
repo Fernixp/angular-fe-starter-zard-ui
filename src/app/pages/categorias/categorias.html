@@ -1,11 +1,13 @@
 <div class="space-y-4">
     <div class="flex items-center justify-between">
       <h2 class="text-2xl font-bold">Categorías</h2>
-      <button z-button zType="default">
+      <button z-button zType="default" (click)="openCreateDialog()">
         <z-icon zType="folder-plus" class="mr-2" />
         Nueva Categoría
       </button>
     </div>
+  
+    <z-divider></z-divider>
   
     @if (loading()) {
       <div class="flex items-center justify-center py-12">
@@ -59,7 +61,7 @@
                       z-button 
                       zType="ghost" 
                       zSize="icon" 
-                      (click)="editCategoria(categoria)" 
+                      (click)="openEditDialog(categoria)" 
                       title="Editar categoría"
                     >
                       <z-icon zType="settings" />
