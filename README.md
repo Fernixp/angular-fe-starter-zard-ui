@@ -109,7 +109,7 @@ npm install
 
 Url de repositorio laravel-starter:
 
-[https://github.com/Fernixp/laravel-mvc-starter](https://github.com/Fernixp/laravel-mvc-starter)
+[https://github.com/Fernixp/laravel-api-starter](https://github.com/Fernixp/laravel-api-starter)
 
 Asegúrate de que el backend Laravel esté corriendo en:
 
