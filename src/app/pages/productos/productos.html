@@ -46,7 +46,7 @@
               <div class="font-medium">{{ producto.precio }}</div>
             </td>
             <td z-table-cell>
-              <div class="font-medium">{{ producto.categoria_id }}</div>
+              <div class="font-medium">{{ producto.categoria ?? '-' }}</div>
             </td>
             <td z-table-cell>
               <z-badge [zType]="getEstadoVariant(producto.estado)">

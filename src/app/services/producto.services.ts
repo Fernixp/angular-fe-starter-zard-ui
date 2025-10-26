@@ -7,6 +7,7 @@ export interface Producto {
   nombre: string;
   precio: number;
   categoria_id: number;
+  categoria?: string;
   estado: 'activo' | 'inactivo';
   created_at: string;
   updated_at: string;

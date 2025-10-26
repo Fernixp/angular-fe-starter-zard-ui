@@ -70,7 +70,7 @@ export class Productos implements OnInit {
   openCreateDialog(): void {
     const dialogRef = this.dialogService.create({
       zTitle: 'Nuevo Producto',
-      zDescription: 'Ingrese el nombre del nuevo producto.',
+      zDescription: 'Ingrese los datos del nuevo producto.',
       zContent: ProductoFormDialogComponent,
       zOkText: 'Crear',
       zCancelText: 'Cancelar',
