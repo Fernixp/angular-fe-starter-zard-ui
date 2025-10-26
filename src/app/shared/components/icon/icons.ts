@@ -52,6 +52,7 @@ import {
   Smartphone,
   Sparkles,
   SquareLibrary,
+  SquarePen,
   Star,
   Sun,
   Tablet,
@@ -59,6 +60,7 @@ import {
   TextAlignCenter,
   TextAlignEnd,
   TextAlignStart,
+  Trash2,
   TriangleAlert,
   Underline,
   User,
@@ -139,6 +141,8 @@ export const ZARD_ICONS = {
   smartphone: Smartphone,
   tablet: Tablet,
   menu: Menu,
+  trash2:Trash2,
+  'square-pen': SquarePen,
 } as const satisfies Record<string, LucideIconData>;
 
 export declare type ZardIcon = keyof typeof ZARD_ICONS | LucideIconData;

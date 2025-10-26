@@ -1,11 +1,241 @@
-import { Component } from '@angular/core';
-
+import { Component, OnInit, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  ZardTableBodyComponent,
+  ZardTableCellComponent,
+  ZardTableComponent,
+  ZardTableHeadComponent,
+  ZardTableHeaderComponent,
+  ZardTableRowComponent,
+} from '../../shared/components/table/table.component';
+import { ZardButtonComponent } from '../../shared/components/button/button.component';
+import { ZardBadgeComponent } from '../../shared/components/badge/badge.component';
+import { ZardIconComponent } from '../../shared/components/icon/icon.component';
+import { ZardDividerComponent } from '../../shared/components/divider/divider.component';
+import { ZardDialogModule } from '../../shared/components/dialog/dialog.component';
+import { ZardDialogService } from '../../shared/components/dialog/dialog.service';
+import { ZardAlertDialogService } from '../../shared/components/alert-dialog/alert-dialog.service';
+import { CategoriaService, Categoria } from '../../services/categoria.services';
+import { CategoriaFormDialogComponent, CategoriaFormData } from './categoria-form-dialog';
+import { toast } from 'ngx-sonner';
 @Component({
   selector: 'app-categorias',
-  imports: [],
+  imports: [
+    CommonModule,
+    ZardTableComponent,
+    ZardTableHeaderComponent,
+    ZardTableBodyComponent,
+    ZardTableRowComponent,
+    ZardTableHeadComponent,
+    ZardTableCellComponent,
+    ZardBadgeComponent,
+    ZardButtonComponent,
+    ZardIconComponent,
+    ZardDividerComponent,
+    ZardDialogModule,
+  ],
   templateUrl: './categorias.html',
   styleUrl: './categorias.css',
 })
-export class Categorias {
+export class Categorias implements OnInit {
+  private categoriaService = inject(CategoriaService);
+  private dialogService = inject(ZardDialogService);
+  private alertDialogService = inject(ZardAlertDialogService);
 
+  categorias = signal<Categoria[]>([]);
+  loading = signal(true);
+  error = signal<string | null>(null);
+
+  ngOnInit(): void {
+    this.loadCategorias();
+  }
+
+  loadCategorias(): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.categoriaService.getCategorias().subscribe({
+      next: (data) => {
+        this.categorias.set(data);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error al cargar categorías:', err);
+        this.error.set('Error al cargar las categorías');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  openCreateDialog(): void {
+    const dialogRef = this.dialogService.create({
+      zTitle: 'Nueva Categoría',
+      zDescription: 'Ingrese el nombre de la nueva categoría.',
+      zContent: CategoriaFormDialogComponent,
+      zOkText: 'Crear',
+      zCancelText: 'Cancelar',
+      zOnOk: (instance: CategoriaFormDialogComponent) => {
+        if (!instance.isValid()) {
+          console.error('Formulario inválido');
+          return false;
+        }
+
+        instance.clearServerErrors();
+
+        const formData = instance.getValue();
+
+        this.categoriaService
+          .createCategoria({
+            nombre: formData.nombre,
+            estado: 'activo',
+          })
+          .subscribe({
+            next: () => {
+              this.showToast(
+                'Categoría creada exitosamente',
+                'La categoría se creó correctamente.'
+              );
+              this.loadCategorias();
+              dialogRef.close();
+            },
+            error: (err) => {
+              console.error('Error al crear categoría:', err);
+
+              if (err.status === 422 && err.error) {
+                instance.setServerErrors({
+                  message: err.error.message || 'Error de validación',
+                  errors: err.error.errors || {},
+                });
+              } else {
+                instance.setServerErrors({
+                  message: 'Error al crear la categoría. Intente nuevamente.',
+                });
+              }
+
+              this.loading.set(false);
+            },
+          });
+
+        return false;
+      },
+      zWidth: '450px',
+    });
+  }
+
+  openEditDialog(categoria: Categoria): void {
+    const dialogRef = this.dialogService.create({
+      zTitle: 'Editar Categoría',
+      zDescription: `Editando categoría: ${categoria.nombre}`,
+      zContent: CategoriaFormDialogComponent,
+      zData: {
+        id: categoria.id,
+        nombre: categoria.nombre,
+        estado: categoria.estado,
+      } as CategoriaFormData,
+      zOkText: 'Actualizar',
+      zCancelText: 'Cancelar',
+      zOnOk: (instance: CategoriaFormDialogComponent) => {
+        if (!instance.isValid()) {
+          this.showToast(
+            'Formulario inválido',
+            'Por favor, complete todos los campos correctamente.'
+          );
+          return false;
+        }
+
+        instance.clearServerErrors();
+
+        const formData = instance.getValue();
+
+        this.categoriaService
+          .updateCategoria(categoria.id, {
+            nombre: formData.nombre,
+            estado: formData.estado!,
+          })
+          .subscribe({
+            next: () => {
+              this.showToast(
+                'Categoría actualizada exitosamente',
+                'La categoría se actualizó correctamente.'
+              );
+              this.loadCategorias();
+              dialogRef.close();
+            },
+            error: (err) => {
+              this.showToast('Error al actualizar categoría', 'Intente nuevamente.');
+
+              if (err.status === 422 && err.error) {
+                instance.setServerErrors({
+                  message: err.error.message || 'Error de validación',
+                  errors: err.error.errors || {},
+                });
+              } else {
+                instance.setServerErrors({
+                  message: 'Error al actualizar la categoría. Intente nuevamente.',
+                });
+              }
+
+              this.loading.set(false);
+            },
+          });
+
+        return false;
+      },
+      zWidth: '450px',
+    });
+  }
+
+  deleteCategoria(categoria: Categoria): void {
+    this.alertDialogService.confirm({
+      zTitle: '¿Estás seguro?',
+      zDescription: `Esta acción eliminará permanentemente la categoría "${categoria.nombre}". Esta acción no se puede deshacer.`,
+      zOkText: 'Eliminar',
+      zCancelText: 'Cancelar',
+      zOnOk: () => {
+        this.loading.set(true);
+
+        this.categoriaService.deleteCategoria(categoria.id).subscribe({
+          next: () => {
+            this.showToast(
+              'Categoría eliminada exitosamente',
+              'La categoría se eliminó correctamente.'
+            );
+            this.loadCategorias();
+          },
+          error: (err) => {
+            this.showToast('Error al eliminar categoría', 'Intente nuevamente.');
+            this.loading.set(false);
+
+            // Opcional: Mostrar otro alert con el error
+            this.alertDialogService.confirm({
+              zTitle: 'Error',
+              zDescription: 'No se pudo eliminar la categoría. Por favor, intente nuevamente.',
+              zOkText: 'Aceptar',
+              zCancelText: '',
+            });
+          },
+        });
+      },
+    });
+  }
+
+  getEstadoVariant(estado: string): 'default' | 'secondary' | 'destructive' | 'outline' {
+    return estado === 'activo' ? 'default' : 'outline';
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(date);
+  }
+
+  showToast(message: string, description: string) {
+    toast.error(message, {
+      description: description,
+      position: 'top-right',
+    });
+  }
 }
