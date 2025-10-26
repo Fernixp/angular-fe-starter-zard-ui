@@ -17,7 +17,7 @@ import { ZardDialogService } from '../../shared/components/dialog/dialog.service
 import { ZardAlertDialogService } from '../../shared/components/alert-dialog/alert-dialog.service';
 import { CategoriaService, Categoria } from '../../services/categoria.services';
 import { CategoriaFormDialogComponent, CategoriaFormData } from './categoria-form-dialog';
-
+import { toast } from 'ngx-sonner';
 @Component({
   selector: 'app-categorias',
   imports: [
@@ -53,7 +53,7 @@ export class Categorias implements OnInit {
   loadCategorias(): void {
     this.loading.set(true);
     this.error.set(null);
-    
+
     this.categoriaService.getCategorias().subscribe({
       next: (data) => {
         this.categorias.set(data);
@@ -63,7 +63,7 @@ export class Categorias implements OnInit {
         console.error('Error al cargar categorías:', err);
         this.error.set('Error al cargar las categorías');
         this.loading.set(false);
-      }
+      },
     });
   }
 
@@ -84,32 +84,37 @@ export class Categorias implements OnInit {
 
         const formData = instance.getValue();
 
-        this.categoriaService.createCategoria({
-          nombre: formData.nombre,
-          estado: 'activo',
-        }).subscribe({
-          next: () => {
-            console.log('Categoría creada exitosamente');
-            this.loadCategorias();
-            dialogRef.close();
-          },
-          error: (err) => {
-            console.error('Error al crear categoría:', err);
-            
-            if (err.status === 422 && err.error) {
-              instance.setServerErrors({
-                message: err.error.message || 'Error de validación',
-                errors: err.error.errors || {}
-              });
-            } else {
-              instance.setServerErrors({
-                message: 'Error al crear la categoría. Intente nuevamente.'
-              });
-            }
-            
-            this.loading.set(false);
-          }
-        });
+        this.categoriaService
+          .createCategoria({
+            nombre: formData.nombre,
+            estado: 'activo',
+          })
+          .subscribe({
+            next: () => {
+              this.showToast(
+                'Categoría creada exitosamente',
+                'La categoría se creó correctamente.'
+              );
+              this.loadCategorias();
+              dialogRef.close();
+            },
+            error: (err) => {
+              console.error('Error al crear categoría:', err);
+
+              if (err.status === 422 && err.error) {
+                instance.setServerErrors({
+                  message: err.error.message || 'Error de validación',
+                  errors: err.error.errors || {},
+                });
+              } else {
+                instance.setServerErrors({
+                  message: 'Error al crear la categoría. Intente nuevamente.',
+                });
+              }
+
+              this.loading.set(false);
+            },
+          });
 
         return false;
       },
@@ -131,7 +136,10 @@ export class Categorias implements OnInit {
       zCancelText: 'Cancelar',
       zOnOk: (instance: CategoriaFormDialogComponent) => {
         if (!instance.isValid()) {
-          console.error('Formulario inválido');
+          this.showToast(
+            'Formulario inválido',
+            'Por favor, complete todos los campos correctamente.'
+          );
           return false;
         }
 
@@ -139,32 +147,37 @@ export class Categorias implements OnInit {
 
         const formData = instance.getValue();
 
-        this.categoriaService.updateCategoria(categoria.id, {
-          nombre: formData.nombre,
-          estado: formData.estado!,
-        }).subscribe({
-          next: () => {
-            console.log('Categoría actualizada exitosamente');
-            this.loadCategorias();
-            dialogRef.close();
-          },
-          error: (err) => {
-            console.error('Error al actualizar categoría:', err);
-            
-            if (err.status === 422 && err.error) {
-              instance.setServerErrors({
-                message: err.error.message || 'Error de validación',
-                errors: err.error.errors || {}
-              });
-            } else {
-              instance.setServerErrors({
-                message: 'Error al actualizar la categoría. Intente nuevamente.'
-              });
-            }
-            
-            this.loading.set(false);
-          }
-        });
+        this.categoriaService
+          .updateCategoria(categoria.id, {
+            nombre: formData.nombre,
+            estado: formData.estado!,
+          })
+          .subscribe({
+            next: () => {
+              this.showToast(
+                'Categoría actualizada exitosamente',
+                'La categoría se actualizó correctamente.'
+              );
+              this.loadCategorias();
+              dialogRef.close();
+            },
+            error: (err) => {
+              this.showToast('Error al actualizar categoría', 'Intente nuevamente.');
+
+              if (err.status === 422 && err.error) {
+                instance.setServerErrors({
+                  message: err.error.message || 'Error de validación',
+                  errors: err.error.errors || {},
+                });
+              } else {
+                instance.setServerErrors({
+                  message: 'Error al actualizar la categoría. Intente nuevamente.',
+                });
+              }
+
+              this.loading.set(false);
+            },
+          });
 
         return false;
       },
@@ -183,14 +196,16 @@ export class Categorias implements OnInit {
 
         this.categoriaService.deleteCategoria(categoria.id).subscribe({
           next: () => {
-            console.log('Categoría eliminada exitosamente');
+            this.showToast(
+              'Categoría eliminada exitosamente',
+              'La categoría se eliminó correctamente.'
+            );
             this.loadCategorias();
           },
           error: (err) => {
-            console.error('Error al eliminar categoría:', err);
-            this.error.set('Error al eliminar la categoría');
+            this.showToast('Error al eliminar categoría', 'Intente nuevamente.');
             this.loading.set(false);
-            
+
             // Opcional: Mostrar otro alert con el error
             this.alertDialogService.confirm({
               zTitle: 'Error',
@@ -198,9 +213,9 @@ export class Categorias implements OnInit {
               zOkText: 'Aceptar',
               zCancelText: '',
             });
-          }
+          },
         });
-      }
+      },
     });
   }
 
@@ -215,5 +230,12 @@ export class Categorias implements OnInit {
       month: 'short',
       day: 'numeric',
     }).format(date);
+  }
+
+  showToast(message: string, description: string) {
+    toast.error(message, {
+      description: description,
+      position: 'top-right',
+    });
   }
 }
